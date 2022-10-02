@@ -1,6 +1,6 @@
 import imp
 import mysql.connector
-import consts
+import controller.consts as consts
 import os
 
 # This class handles the database and communicates with backend

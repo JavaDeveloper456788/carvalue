@@ -1,12 +1,11 @@
-from email.mime import application
 from flask import Flask, render_template, request, Response
 import json
-from dbhandler import DBHandler
-from utils import calculateAvg, get_vehicle_list, round_nearest_100
+from controller.dbhandler import DBHandler
+from controller.utils import calculateAvg, get_vehicle_list_as_dict, round_nearest_100
 
 db = DBHandler()
 
-application = Flask(__name__)
+application = Flask(__name__, template_folder="view")
 
 @application.route('/')
 def home():
@@ -38,7 +37,7 @@ def search():
             return Response(json.dumps({"success": False, "error":"No vehicle found with given input data."}), mimetype='application/json')
 
         # Limit only first 100 vehicles
-        vehicles = get_vehicle_list(result, 100)
+        vehicles = get_vehicle_list_as_dict(result, 100)
 
         # rounding up the value to its nearest 100
         est = round_nearest_100(calculateAvg(result))
@@ -46,6 +45,7 @@ def search():
         response = {"success": True, "error": ""}
         response["estimation"] = int(est)
         response["vehicles"] = vehicles
+
 
         return Response(json.dumps(response), mimetype='application/json')
 
@@ -55,7 +55,5 @@ def search():
         print(e)
         return Response(json.dumps({"success": False, "error":"Error"}), mimetype='application/json')
 
-    # application entry point
-    
 if __name__ == '__main__':
    application.run()
