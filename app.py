@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, Response
 import json
+from controller.Estimator import Estimator
 from controller.dbhandler import DBHandler
 from controller.utils import calculateAvg, get_vehicle_list_as_dict, round_nearest_100
 
@@ -25,11 +26,8 @@ def search():
         result = []
 
         # checking if mileage value is provided  
-
-        if mileage == "":
-            result = db.search(year, make, model)
-        else:
-            result = db.searchMileage(year, make, model, int(mileage))
+         
+        result = db.search(year, make, model)
 
         # if no vehicle is found then this data is returned
 
@@ -39,14 +37,18 @@ def search():
         # Limit only first 100 vehicles
         vehicles = get_vehicle_list_as_dict(result, 100)
 
-        # rounding up the value to its nearest 100
-        est = round_nearest_100(calculateAvg(result))
+        if(mileage == ''):
+            est = round_nearest_100(calculateAvg(result))
+        else:
+            est = round_nearest_100(Estimator.estimate(result, mileage))
+        
+        if(est < 0):
+            est = 0
         
         response = {"success": True, "error": ""}
         response["estimation"] = int(est)
         response["vehicles"] = vehicles
-
-
+        
         return Response(json.dumps(response), mimetype='application/json')
 
     # exception handeling
